@@ -17,19 +17,19 @@ g:QFDebug_loaded = true
 set signcolumn=number
 
 # QFDebug color scheme
-highlight QFDebug_err  ctermfg=0160 term=none 
-highlight QFDebug_warn ctermfg=0215 term=none
-highlight QFDebug_info ctermfg=0248 term=none
+highlight QFDebug_err  term=none ctermbg=red   
+highlight QFDebug_warn term=none ctermbg=yellow
+highlight QFDebug_info term=none ctermbg=white 
 
 # QFDebug sign
-sign define QFDebug_err  numhl=QFDebug_err  text=\ ⚑
-sign define QFDebug_warn numhl=QFDebug_warn text=\ ⚑
-sign define QFDebug_info numhl=QFDebug_info text=\ ⚑
+sign define QFDebug_err  numhl=QFDebug_err  culhl=QFDebug_err
+sign define QFDebug_warn numhl=QFDebug_warn culhl=QFDebug_warn
+sign define QFDebug_info numhl=QFDebug_info culhl=QFDebug_info
 
 # QFDebug augroup & autocmd
-# Open the QuickFix buffer at the bottom of current window and place
-# signs on the corresponding line if there are any errors or warning
-# returned after executing the ":make" command.
+# Open the QuickFix buffer at the bottom of current window and
+# place all the signs on the corresponding line if there are any
+# errors or warning returned after executing the ":make" command.
 augroup QFDebug
 	autocmd!
 	autocmd QuickFixCmdPre [^l]* call QFDebugUnsign()
@@ -54,35 +54,30 @@ enddef
 
 # Place the signs on the corresponding lines.
 def QFDebugSign()
-	var sign_track: number = 0
-	var sign_place: string = ""
 	var valid_list: list<dict<any>> = QFDebugParse()
+	var sign_type: string = ""
 	
 	if len(valid_list) > 0
-		for debug in valid_list
-			sign_track += 1
-			sign_place = "sign place " .. sign_track .. " line=" .. debug.lnum
-			
-			if debug.type == 'E'
-				sign_place ..= " name=QFDebug_err"
-			elseif debug.type == 'W'
-				sign_place ..= " name=QFDebug_warn"
+		for dbg in valid_list
+			if dbg.type == 'E'
+				sign_type = "QFDebug_err"
+			elseif dbg.type == 'W'
+				sign_type = "QFDebug_warn"
 			else
-				sign_place ..= " name=QFDebug_info"
+				sign_type = "QFDebug_info"
 			endif
 			
-			sign_place ..= " group=QFDebug buffer=" .. debug.bufnr
-			silent! execute sign_place
+			sign_place(0, "QFDebug", sign_type, dbg.bufnr, { 'lnum': dbg.lnum })
 		endfor
 		
-		call QFDebugBufOpen(valid_list[0]['bufnr'])
+		QFDebugBufOpen(valid_list[0]['bufnr'])
 	endif
 enddef
 
 # Clear all placed signs.
 def QFDebugUnsign()
-	silent! execute "sign unplace * group=QFDebug"
-	call QFDebugBufClose()
+	sign_unplace("QFDebug")
+	QFDebugBufClose()
 enddef
 
 # Open QuickFix buffer.
