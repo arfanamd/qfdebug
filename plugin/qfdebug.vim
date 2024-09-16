@@ -20,6 +20,7 @@ set signcolumn=number
 highlight QFDebug_err  cterm=none ctermbg=red   
 highlight QFDebug_warn cterm=none ctermbg=yellow
 highlight QFDebug_info cterm=none ctermbg=white 
+highlight QFDebug_line cterm=bold ctermbg=008 ctermfg=007
 
 # QFDebug sign
 sign define QFDebug_err  numhl=QFDebug_err  culhl=QFDebug_err
@@ -57,20 +58,28 @@ def QFDebugSign()
 	var valid_list: list<dict<any>> = QFDebugParse()
 	var sign_type: string = ""
 	
+	var e_c: number = 0
+	var w_c: number = 0
+	var i_c: number = 0
+	
 	if len(valid_list) > 0
 		for dbg in valid_list
 			if dbg.type == 'E'
 				sign_type = "QFDebug_err"
+				e_c += 1
 			elseif dbg.type == 'W'
 				sign_type = "QFDebug_warn"
+				w_c += 1
 			else
 				sign_type = "QFDebug_info"
+				i_c += 1
 			endif
 			
 			sign_place(0, "QFDebug", sign_type, dbg.bufnr, {'lnum': dbg.lnum})
 		endfor
 		
 		QFDebugBufOpen(valid_list[0]['bufnr'])
+		setbufvar("", "&statusline", QFDebugStatusLine(i_c, w_c, e_c))
 	endif
 enddef
 
@@ -89,6 +98,16 @@ enddef
 # Close QuickFix buffer.
 def QFDebugBufClose()
 	silent! execute "cclose"
+enddef
+
+# Generate statusline for QuickFix
+def QFDebugStatusLine(i: number, w: number, e: number): string
+	var sl: string = "%#Normal# %#QFDebug_line# QuickFixDebug %="
+	sl ..= "  Info: " .. i
+	sl ..= "  Warn: " .. w
+	sl ..= "  Error: " .. e
+	sl ..= " %#Normal#"
+	return sl
 enddef
 
 # vim:ft=vim:sw=2:ts=2
