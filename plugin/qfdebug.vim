@@ -17,9 +17,9 @@ g:QFDebug_loaded = true
 set signcolumn=number
 
 # QFDebug color scheme
-highlight QFDebug_err  term=none ctermbg=red   
-highlight QFDebug_warn term=none ctermbg=yellow
-highlight QFDebug_info term=none ctermbg=white 
+highlight QFDebug_err  cterm=none ctermbg=red   
+highlight QFDebug_warn cterm=none ctermbg=yellow
+highlight QFDebug_info cterm=none ctermbg=white 
 
 # QFDebug sign
 sign define QFDebug_err  numhl=QFDebug_err  culhl=QFDebug_err
@@ -67,7 +67,7 @@ def QFDebugSign()
 				sign_type = "QFDebug_info"
 			endif
 			
-			sign_place(0, "QFDebug", sign_type, dbg.bufnr, { 'lnum': dbg.lnum })
+			sign_place(0, "QFDebug", sign_type, dbg.bufnr, {'lnum': dbg.lnum})
 		endfor
 		
 		QFDebugBufOpen(valid_list[0]['bufnr'])
